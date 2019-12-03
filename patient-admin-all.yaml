@@ -1,0 +1,191 @@
+apiVersion: v1
+items:
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: patient-admin
+    name: patient-admin
+    selfLink: /apis/build.openshift.io/v1/namespaces/health/buildconfigs/patient-admin
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: patient-admin:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: /src
+      git:
+        uri: https://github.com/daihiraoka/php-s2i-openshift.git
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: php:7.1
+          namespace: openshift
+      type: Source
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: n5QDPM9VEoSX55JfsUc7
+      type: GitHub
+    - generic:
+        secret: V_999vGtDAa5btKgdfWK
+      type: Generic
+    - type: ConfigChange
+    - imageChange:
+        lastTriggeredImageID: 172.30.1.1:5000/openshift/php@sha256:3af055f659af29c22689d92107db7b26404ede039cdf61d3408759c4e31b4976
+      type: ImageChange
+  status:
+    lastVersion: 1
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: patient-admin
+    name: patient-admin
+    selfLink: /apis/apps.openshift.io/v1/namespaces/health/deploymentconfigs/patient-admin
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: patient-admin
+      deploymentconfig: patient-admin
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: patient-admin
+          deploymentconfig: patient-admin
+      spec:
+        containers:
+        - env:
+          - name: apiBaseUrl
+            value: http://example-health-api-health.192.168.42.218.nip.io
+          image: 172.30.1.1:5000/health/patient-admin@sha256:daab75ef3a3579f6f9c3b8ef6fc7a110a9bc3133d01387ade0effdf73243a49c
+          imagePullPolicy: Always
+          name: patient-admin
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - patient-admin
+        from:
+          kind: ImageStreamTag
+          name: patient-admin:latest
+          namespace: health
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: patient-admin
+    name: patient-admin
+    selfLink: /api/v1/namespaces/health/services/patient-admin
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8443-tcp
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    selector:
+      app: patient-admin
+      deploymentconfig: patient-admin
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: patient-admin
+    name: patient-admin
+    selfLink: /apis/image.openshift.io/v1/namespaces/health/imagestreams/patient-admin
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: 172.30.1.1:5000/patient-admin
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: patient-admin
+    name: patient-admin
+    selfLink: /apis/route.openshift.io/v1/namespaces/health/routes/patient-admin
+  spec:
+    host: patient-admin-health.192.168.42.218.nip.io
+    port:
+      targetPort: 8080-tcp
+    to:
+      kind: Service
+      name: patient-admin
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress: null
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
